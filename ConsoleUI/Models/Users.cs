@@ -2,10 +2,11 @@
 {
     public class Users
     {
-        public int user_id { get; set; }
-        public string? user_name { get; set; }
-        public string? first_name { get; set; }
-        public string? user_mail { get; set; }
-        public bool is_admin { get; set; }
+        // user
+        public int UserId { get; set; }
+        public string? UserName { get; set; }
+        public string? FirstName { get; set; }
+        public string? UserMail { get; set; }
+        public bool IsAdmin { get; set; }
     }
 }

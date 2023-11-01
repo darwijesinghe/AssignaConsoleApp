@@ -40,11 +40,11 @@ namespace ConsoleUI.Services
             try
             {
                 // adding headers
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
                 // calling api
-                using (response = await _client.request.GetAsync("user/members"))
+                using (response = await _client.Request.GetAsync("user/members"))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                     | response.StatusCode == HttpStatusCode.Forbidden)
@@ -52,20 +52,20 @@ namespace ConsoleUI.Services
                         // call refresh token
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("user/members");
+                        response = await _client.Request.GetAsync("user/members");
                     }
 
                     // read response
@@ -73,13 +73,13 @@ namespace ConsoleUI.Services
 
                     // deserializing
                     var member = JsonConvert.DeserializeObject<Result<List<Users>>>(result)!
-                        .data.ToList();
+                        .Data.ToList();
 
                     return new Result<List<Users>>
                     {
-                        success = true,
-                        message = "Ok",
-                        data = member
+                        Success = true,
+                        Message = "Ok",
+                        Data = member
                     };
                 }
 
@@ -89,8 +89,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Users>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -100,43 +100,43 @@ namespace ConsoleUI.Services
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.GetAsync("category/categories"))
+                using (response = await _client.Request.GetAsync("category/categories"))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                   | response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("category/categories");
+                        response = await _client.Request.GetAsync("category/categories");
                     }
 
 
                     string result = await response.Content.ReadAsStringAsync();
 
                     var category = JsonConvert.DeserializeObject<Result<List<Categories>>>(result)!
-                        .data.ToList();
+                        .Data.ToList();
 
                     return new Result<List<Categories>>
                     {
-                        success = true,
-                        message = "Ok",
-                        data = category
+                        Success = true,
+                        Message = "Ok",
+                        Data = category
                     };
                 }
 
@@ -146,8 +146,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Categories>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -157,43 +157,43 @@ namespace ConsoleUI.Services
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.GetAsync("priority/priorities"))
+                using (response = await _client.Request.GetAsync("priority/priorities"))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("priority/priorities");
+                        response = await _client.Request.GetAsync("priority/priorities");
                     }
 
 
                     string result = await response.Content.ReadAsStringAsync();
 
                     var priority = JsonConvert.DeserializeObject<Result<List<Priorities>>>(result)!
-                        .data.ToList();
+                        .Data.ToList();
 
                     return new Result<List<Priorities>>
                     {
-                        success = true,
-                        message = "Ok",
-                        data = priority
+                        Success = true,
+                        Message = "Ok",
+                        Data = priority
                     };
                 }
             }
@@ -202,8 +202,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Priorities>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -216,9 +216,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("tasks");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -226,8 +226,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -240,9 +240,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("pendings");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -250,8 +250,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -264,9 +264,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("completes");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -274,8 +274,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -288,9 +288,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("high-priority");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -298,8 +298,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -312,9 +312,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("medium-priority");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -322,8 +322,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -336,9 +336,9 @@ namespace ConsoleUI.Services
                 var data = await TasksDataRequest("low-priority");
                 return new Result<List<Tasks>>
                 {
-                    success = true,
-                    message = "Ok",
-                    data = data.ToList()
+                    Success = true,
+                    Message = "Ok",
+                    Data = data.ToList()
                 };
             }
             catch (Exception ex)
@@ -346,8 +346,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -356,14 +356,14 @@ namespace ConsoleUI.Services
         private async Task<List<Tasks>> TasksDataRequest(string action)
         {
             // change controller based on user
-            string controller = (Keys.role == Roles.lead) ? "leadtasks" : "membertasks";
+            string controller = (Keys.Role == Roles.lead) ? "leadtasks" : "membertasks";
 
             // adding headers
-            var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-            _client.request.DefaultRequestHeaders.Authorization = header;
+            var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+            _client.Request.DefaultRequestHeaders.Authorization = header;
 
             // calling api
-            using(response = await _client.request.GetAsync($"{controller}/{action}"))
+            using(response = await _client.Request.GetAsync($"{controller}/{action}"))
             {
                 if (response.StatusCode == HttpStatusCode.Unauthorized
                     | response.StatusCode == HttpStatusCode.Forbidden)
@@ -371,20 +371,20 @@ namespace ConsoleUI.Services
                     // call refresh token
                     var refresh = new RefreshToken
                     {
-                        refresh_token = Keys.refreshToken
+                        TokenRefresh = Keys.RefreshToken
                     };
 
                     var token = await _authService.RefreshTokenAsync(refresh);
-                    if (token.success)
+                    if (token.Success)
                     {
-                        Keys.accessToken = token.token;
-                        Keys.refreshToken = token.refresh_token;
+                        Keys.AccessToken = token.Token;
+                        Keys.RefreshToken = token.RefreshToken;
                     }
 
-                    header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                    _client.request.DefaultRequestHeaders.Authorization = header;
+                    header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                    _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                    response = await _client.request.GetAsync($"{controller}/{action}");
+                    response = await _client.Request.GetAsync($"{controller}/{action}");
 
                 }
 
@@ -393,7 +393,7 @@ namespace ConsoleUI.Services
 
                 // deserializing
                 var data = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                    .data.ToList();
+                    .Data.ToList();
 
                 return data;
 
@@ -406,42 +406,42 @@ namespace ConsoleUI.Services
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.GetAsync($"leadtasks/task-info?taskid={taskId}"))
+                using (response = await _client.Request.GetAsync($"leadtasks/task-info?taskid={taskId}"))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                     | response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync($"leadtasks/task-info?taskid={taskId}");
+                        response = await _client.Request.GetAsync($"leadtasks/task-info?taskid={taskId}");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
 
                     var info = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                        .data.ToList();
+                        .Data.ToList();
 
                     return new Result<List<Tasks>>
                     {
-                        success = true,
-                        message = "Ok",
-                        data = info
+                        Success = true,
+                        Message = "Ok",
+                        Data = info
                     };
                 }
             }
@@ -450,8 +450,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -460,42 +460,42 @@ namespace ConsoleUI.Services
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.GetAsync($"membertasks/task-info?taskid={taskId}"))
+                using (response = await _client.Request.GetAsync($"membertasks/task-info?taskid={taskId}"))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                     | response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync($"membertasks/task-info?taskid={taskId}");
+                        response = await _client.Request.GetAsync($"membertasks/task-info?taskid={taskId}");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
 
                     var info = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                        .data.ToList();
+                        .Data.ToList();
 
                     return new Result<List<Tasks>>
                     {
-                        success = true,
-                        message = "Ok",
-                        data = info
+                        Success = true,
+                        Message = "Ok",
+                        Data = info
                     };
                 }
             }
@@ -504,8 +504,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result<List<Tasks>>
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -517,12 +517,12 @@ namespace ConsoleUI.Services
             {
                 var task = new AddTask
                 {
-                    tsk_title = data.tsk_title,
-                    tsk_category = data.tsk_category,
-                    deadline = data.deadline,
-                    priority = data.priority,
-                    member = data.member,
-                    tsk_note = data.tsk_note
+                    TskTitle = data.TskTitle,
+                    TskCategory = data.TskCategory,
+                    Deadline = data.Deadline,
+                    Priority = data.Priority,
+                    Member = data.Member,
+                    TskNote = data.TskNote
                 };
 
                 // serializing
@@ -534,10 +534,10 @@ namespace ConsoleUI.Services
                     );
 
                 // adding headers
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("leadtasks/add-task", content))
+                using (response = await _client.Request.PostAsync("leadtasks/add-task", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -545,20 +545,20 @@ namespace ConsoleUI.Services
                         // call refresh token
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("leadtasks/add-task");
+                        response = await _client.Request.GetAsync("leadtasks/add-task");
                     }
 
                     // read response
@@ -575,8 +575,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -588,13 +588,13 @@ namespace ConsoleUI.Services
             {
                 var task = new EditTask
                 {
-                    tsk_id = data.tsk_id,
-                    tsk_title = data.tsk_title,
-                    tsk_category = data.tsk_category,
-                    deadline = data.deadline,
-                    priority = data.priority,
-                    member = data.member,
-                    tsk_note = data.tsk_note
+                    TskId = data.TskId,
+                    TskTitle = data.TskTitle,
+                    TskCategory = data.TskCategory,
+                    Deadline = data.Deadline,
+                    Priority = data.Priority,
+                    Member = data.Member,
+                    TskNote = data.TskNote
                 };
 
                 var content = new StringContent
@@ -605,10 +605,10 @@ namespace ConsoleUI.Services
                     );
 
 
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("leadtasks/edit-task", content))
+                using (response = await _client.Request.PostAsync("leadtasks/edit-task", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -616,20 +616,20 @@ namespace ConsoleUI.Services
 
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("leadtasks/edit-task");
+                        response = await _client.Request.GetAsync("leadtasks/edit-task");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
@@ -644,8 +644,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -657,7 +657,7 @@ namespace ConsoleUI.Services
             {
                 var task = new DeleteTask
                 {
-                    tsk_id = data.tsk_id
+                    TskId = data.TskId
                 };
 
                 var content = new StringContent
@@ -668,10 +668,10 @@ namespace ConsoleUI.Services
                     );
 
 
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("leadtasks/delete-task", content))
+                using (response = await _client.Request.PostAsync("leadtasks/delete-task", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -679,20 +679,20 @@ namespace ConsoleUI.Services
 
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("leadtasks/delete-task");
+                        response = await _client.Request.GetAsync("leadtasks/delete-task");
                     }
 
 
@@ -708,8 +708,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -721,8 +721,8 @@ namespace ConsoleUI.Services
             {
                 var task = new SendEmail
                 {
-                    tsk_id = data.tsk_id,
-                    message = data.message
+                    TskId = data.TskId,
+                    Message = data.Message
                 };
 
                 var content = new StringContent
@@ -733,10 +733,10 @@ namespace ConsoleUI.Services
                     );
 
 
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("leadtasks/send-remind", content))
+                using (response = await _client.Request.PostAsync("leadtasks/send-remind", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -744,20 +744,20 @@ namespace ConsoleUI.Services
 
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("leadtasks/send-remind");
+                        response = await _client.Request.GetAsync("leadtasks/send-remind");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
@@ -772,8 +772,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -785,8 +785,8 @@ namespace ConsoleUI.Services
             {
                 var task = new AddNote
                 {
-                    tsk_id = data.tsk_id,
-                    user_note = data.user_note
+                    TskId = data.TskId,
+                    UserNote = data.UserNote
                 };
 
                 var content = new StringContent
@@ -797,10 +797,10 @@ namespace ConsoleUI.Services
                     );
 
 
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("membertasks/write-note", content))
+                using (response = await _client.Request.PostAsync("membertasks/write-note", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -808,20 +808,20 @@ namespace ConsoleUI.Services
 
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("membertasks/write-note");
+                        response = await _client.Request.GetAsync("membertasks/write-note");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
@@ -836,8 +836,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -849,7 +849,7 @@ namespace ConsoleUI.Services
             {
                 var task = new AddNote
                 {
-                    tsk_id = data.tsk_id
+                    TskId = data.TskId
                 };
 
                 var content = new StringContent
@@ -860,10 +860,10 @@ namespace ConsoleUI.Services
                     );
 
 
-                var header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                _client.request.DefaultRequestHeaders.Authorization = header;
+                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                using (response = await _client.request.PostAsync("membertasks/mark-done", content))
+                using (response = await _client.Request.PostAsync("membertasks/mark-done", content))
                 {
                     if (response.StatusCode == HttpStatusCode.Unauthorized
                         | response.StatusCode == HttpStatusCode.Forbidden)
@@ -871,20 +871,20 @@ namespace ConsoleUI.Services
 
                         var refresh = new RefreshToken
                         {
-                            refresh_token = Keys.refreshToken
+                            TokenRefresh = Keys.RefreshToken
                         };
 
                         var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.success)
+                        if (token.Success)
                         {
-                            Keys.accessToken = token.token;
-                            Keys.refreshToken = token.refresh_token;
+                            Keys.AccessToken = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.accessToken);
-                        _client.request.DefaultRequestHeaders.Authorization = header;
+                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
+                        _client.Request.DefaultRequestHeaders.Authorization = header;
 
-                        response = await _client.request.GetAsync("membertasks/mark-done");
+                        response = await _client.Request.GetAsync("membertasks/mark-done");
                     }
 
                     string result = await response.Content.ReadAsStringAsync();
@@ -899,8 +899,8 @@ namespace ConsoleUI.Services
                 _logger.LogError(ex.Message);
                 return new Result
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }

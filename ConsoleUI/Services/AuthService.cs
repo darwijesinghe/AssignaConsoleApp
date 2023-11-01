@@ -14,13 +14,13 @@ namespace ConsoleUI.Services
     public class AuthService : IAuthService
     {
         // services
-        private ILogger<Startup> _logger { get; }
-        private AssignaClient _client { get; }
+        private ILogger<Startup> Logger { get; }
+        private AssignaClient Client { get; }
 
         public AuthService(ILogger<Startup> logger, AssignaClient apiClient)
         {
-            _logger = logger;
-            _client = apiClient;
+            Logger = logger;
+            Client = apiClient;
         }
 
         // user registration
@@ -30,11 +30,11 @@ namespace ConsoleUI.Services
             {
                 var register = new Register
                 {
-                    user_name = data.user_name,
-                    first_name = data.first_name,
-                    email = data.email,
-                    password = data.password,
-                    role = data.role
+                    UserName = data.UserName,
+                    FirstName = data.FirstName,
+                    Email = data.Email,
+                    Password = data.Password,
+                    Role = data.Role
                 };
 
                 // serializing
@@ -46,7 +46,7 @@ namespace ConsoleUI.Services
                     );
 
                 // calling api
-                using var response = await _client.request.PostAsync("user/register", content);
+                using var response = await Client.Request.PostAsync("user/register", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
@@ -60,18 +60,18 @@ namespace ConsoleUI.Services
                 {
                     return new AuthResult
                     {
-                        success = false,
-                        message = "Request not succeeded"
+                        Success = false,
+                        Message = "Request not succeeded"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
                 return new AuthResult
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -83,8 +83,8 @@ namespace ConsoleUI.Services
             {
                 var register = new Register
                 {
-                    user_name = data.user_name,
-                    password = data.password,
+                    UserName = data.UserName,
+                    Password = data.Password,
                 };
 
                 // serializing
@@ -96,7 +96,7 @@ namespace ConsoleUI.Services
                     );
 
                 // calling api
-                using var response = await _client.request.PostAsync("user/login", content);
+                using var response = await Client.Request.PostAsync("user/login", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
@@ -110,18 +110,18 @@ namespace ConsoleUI.Services
                 {
                     return new AuthResult
                     {
-                        success = false,
-                        message = "Request not succeeded"
+                        Success = false,
+                        Message = "Request not succeeded"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
                 return new AuthResult
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -133,7 +133,7 @@ namespace ConsoleUI.Services
             {
                 var register = new ForgotPassword
                 {
-                    email = data.email
+                    Email = data.Email
                 };
 
                 // serializing
@@ -145,7 +145,7 @@ namespace ConsoleUI.Services
                     );
 
                 // calling api
-                using var response = await _client.request.PostAsync("user/forgot-password", content);
+                using var response = await Client.Request.PostAsync("user/forgot-password", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
@@ -159,18 +159,18 @@ namespace ConsoleUI.Services
                 {
                     return new AuthResult
                     {
-                        success = false,
-                        message = "Request not succeeded"
+                        Success = false,
+                        Message = "Request not succeeded"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
                 return new AuthResult
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -182,9 +182,9 @@ namespace ConsoleUI.Services
             {
                 var register = new ResetPassword
                 {
-                    password = data.password,
-                    con_password = data.con_password,
-                    reset_token = data.reset_token
+                    Password = data.Password,
+                    ConPassword = data.ConPassword,
+                    ResetToken = data.ResetToken
                 };
 
                 // serializing
@@ -196,7 +196,7 @@ namespace ConsoleUI.Services
                     );
 
                 // calling api
-                using var response = await _client.request.PostAsync("user/reset-password", content);
+                using var response = await Client.Request.PostAsync("user/reset-password", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
@@ -210,18 +210,18 @@ namespace ConsoleUI.Services
                 {
                     return new AuthResult
                     {
-                        success = false,
-                        message = "Request not succeeded"
+                        Success = false,
+                        Message = "Request not succeeded"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
                 return new AuthResult
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }
@@ -233,7 +233,7 @@ namespace ConsoleUI.Services
             {
                 var register = new RefreshToken
                 {
-                    refresh_token=data.refresh_token
+                    TokenRefresh=data.TokenRefresh
                 };
 
                 // serializing
@@ -245,7 +245,7 @@ namespace ConsoleUI.Services
                     );
 
                 // calling api
-                using var response = await _client.request.PostAsync("user/refresh-token", content);
+                using var response = await Client.Request.PostAsync("user/refresh-token", content);
                 if (response.IsSuccessStatusCode)
                 {
                     string result = await response.Content.ReadAsStringAsync();
@@ -259,18 +259,18 @@ namespace ConsoleUI.Services
                 {
                     return new AuthResult
                     {
-                        success = false,
-                        message = "Request not succeeded"
+                        Success = false,
+                        Message = "Request not succeeded"
                     };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
+                Logger.LogError(ex.Message);
                 return new AuthResult
                 {
-                    success = false,
-                    message = "Internal error"
+                    Success = false,
+                    Message = "Internal error"
                 };
             }
         }

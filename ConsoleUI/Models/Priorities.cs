@@ -2,7 +2,8 @@
 {
     public class Priorities
     {
-        public int pri_id { get; set; }
-        public string pri_name { get; set; } = null!;
+        // task priorities
+        public int PriId { get; set; }
+        public string PriName { get; set; }
     }
 }

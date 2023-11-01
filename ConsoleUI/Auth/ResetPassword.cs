@@ -3,8 +3,8 @@
     public class ResetPassword
     {
         // reset password
-        public string? password { get; set; }
-        public string? con_password { get; set; }
-        public string? reset_token { get; set; }
+        public string? Password { get; set; }
+        public string? ConPassword { get; set; }
+        public string? ResetToken { get; set; }
     }
 }

@@ -3,6 +3,6 @@
     public class RefreshToken
     {
         // refresh token
-        public string? refresh_token { get; set; }
+        public string? TokenRefresh { get; set; }
     }
 }

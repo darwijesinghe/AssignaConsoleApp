@@ -3,23 +3,23 @@
     // responses
     public class Result
     {
-        public bool success { get; set; }
-        public string? message { get; set; }
+        public bool Success { get; set; }
+        public string? Message { get; set; }
     }
  
     public class Result<T> where T : class
     {
-        public bool success { get; set; }
-        public string? message { get; set; }
-        public T? data { get; set; }
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public T? Data { get; set; }
     }
     public class AuthResult
     {
-        public bool success { get; set; }
-        public string? message { get; set; }
-        public string? token { get; set; }
-        public string? refresh_token { get; set; }
-        public string? reset_token { get; set; }
+        public bool Success { get; set; }
+        public string? Message { get; set; }
+        public string? Token { get; set; }
+        public string? RefreshToken { get; set; }
+        public string? ResetToken { get; set; }
     }
 
 }

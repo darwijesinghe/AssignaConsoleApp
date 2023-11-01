@@ -4,19 +4,20 @@ namespace ConsoleUI.Models
 {
     public class Tasks
     {
-        public int tsk_id { get; set; }
-        public string? tsk_title { get; set; } 
-        public DateTime deadline { get; set; }
-        public string? tsk_note { get; set; }
-        public string? cat_name { get; set; }
-        public string? first_name { get; set; }
-        public bool pending { get; set; }
-        public bool complete { get; set; }
-        public bool pri_high { get; set; }
-        public bool pri_medium { get; set; }
-        public bool pri_low { get; set; }
-        public string? user_note { get; set; }
-        public int cat_id { get; set; }
-        public int user_id { get; set; }
+        // task
+        public int TskId { get; set; }
+        public string? TskTitle { get; set; } 
+        public DateTime Deadline { get; set; }
+        public string? TskNote { get; set; }
+        public string? CatName { get; set; }
+        public string? FirstName { get; set; }
+        public bool Pending { get; set; }
+        public bool Complete { get; set; }
+        public bool PriHigh { get; set; }
+        public bool PriMedium { get; set; }
+        public bool PriLow { get; set; }
+        public string? UserNote { get; set; }
+        public int CatId { get; set; }
+        public int UserId { get; set; }
     }
 }

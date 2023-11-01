@@ -3,6 +3,6 @@
     public class ForgotPassword
     {
         // forgot password
-        public string? email { get; set; }
+        public string? Email { get; set; }
     }
 }

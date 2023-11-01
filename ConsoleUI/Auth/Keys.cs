@@ -3,10 +3,10 @@
     public class Keys
     {
         // props
-        public static string? accessToken { get; set; }
-        public static string? refreshToken { get; set; }
-        public static string? resetToken { get; set; }
-        public static string? role { get; set; }
+        public static string? AccessToken { get; set; }
+        public static string? RefreshToken { get; set; }
+        public static string? ResetToken { get; set; }
+        public static string? Role { get; set; }
 
     }
 }

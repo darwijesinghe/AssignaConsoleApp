@@ -2,7 +2,8 @@
 {
     public class SendEmail
     {
-        public int tsk_id { get; set; }
-        public string? message { get; set; }
+        // send an email
+        public int TskId { get; set; }
+        public string? Message { get; set; }
     }
 }

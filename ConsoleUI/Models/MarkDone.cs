@@ -2,6 +2,7 @@
 {
     public class MarkDone
     {
-        public int tsk_id { get; set; }
+        // mark as done
+        public int TskId { get; set; }
     }
 }
