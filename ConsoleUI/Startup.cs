@@ -1,6 +1,5 @@
 ﻿using ConsoleUI.Auth;
 using ConsoleUI.Interfaces;
-using ConsoleUI.Models;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,25 +13,33 @@ namespace ConsoleUI
 {
     public class Startup
     {
-        // services
-        private ILogger<Startup> Logger { get; }
-        private IAuthService AuthService { get; }
-        private ITaskService TaskService { get; }
+        // Services
+        private ILogger<Startup> _logger;
+        private IAuthService     _authService;
+        private ITaskService     _taskService;
 
-        public Startup(ILogger<Startup> logger, IAuthService authService,
-            ITaskService taskService)
+        public Startup(ILogger<Startup> logger, IAuthService authService, ITaskService taskService)
         {
-            Logger = logger;
-            AuthService = authService;
-            TaskService = taskService;
+            _logger      = logger;
+            _authService = authService;
+            _taskService = taskService;
         }
 
-        // variables
-        private int selection = 0;
-        const string empty = "";
+        /// <summary>
+        /// User selection
+        /// </summary>
+        private int selection      = 0;
+
+        const string empty         = "";
+
+        /// <summary>
+        /// Regex for validate the email address
+        /// </summary>
         private const string regex = @"^[^@\s]+@[^@\s]+\.(com|net|org|gov)$";
 
-        // start
+        /// <summary>
+        /// Starting point
+        /// </summary>
         public async Task Run()
         {
             try
@@ -52,15 +59,15 @@ namespace ConsoleUI
                 switch (selection)
                 {
                     case 1: // registration
-                        await this.Register();
+                        await Register();
                         break;
 
                     case 2: // login
-                        await this.Login();
+                        await Login();
                         break;
 
                     case 3: // forgot password
-                        await this.ForgotPassword();
+                        await ForgotPassword();
                         break;
 
                     default: // logout
@@ -69,12 +76,12 @@ namespace ConsoleUI
                         if (answer.ToUpper() == "YES")
                         {
                             Console.WriteLine();
-                            Console.WriteLine("You are logged out");
+                            Console.WriteLine("You are logged out.");
                         }
                         else
                         {
                             Console.WriteLine();
-                            await this.Run();
+                            await Run();
                         }
                         break;
                 }
@@ -82,13 +89,15 @@ namespace ConsoleUI
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.StackTrace);
-                await this.Run();
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.StackTrace);
+                await Run();
             }
         }
 
-        // registration
+        /// <summary>
+        /// Registration process.
+        /// </summary>
         private async Task Register()
         {
             try
@@ -99,7 +108,7 @@ namespace ConsoleUI
                 user.UserName = Console.ReadLine().Trim();
                 do
                 {
-                    // validate username
+                    // validates username
                     if (user.UserName.Contains(" "))
                     {
                         Console.WriteLine("Username is not valid, Please enter valid username:");
@@ -113,7 +122,7 @@ namespace ConsoleUI
                 user.Email = Console.ReadLine().Trim();
                 do
                 {
-                    // validate email address
+                    // validates email address
                     if (!Regex.IsMatch(user.Email, regex, RegexOptions.IgnoreCase))
                     {
                         Console.WriteLine("Email address is not valid, Please enter valid email:");
@@ -129,31 +138,33 @@ namespace ConsoleUI
                 string role = Console.ReadLine().Trim();
                 user.Role = (role == "1") ? Roles.lead : Roles.member;
 
-                // api calling
-                var result = await AuthService.UserRegisterAsync(user);
+                // calls the api
+                var result = await _authService.UserRegisterAsync(user);
                 if (result.Success)
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Successful, Please login now");
-                    await this.Login();
+                    Console.WriteLine("Successful, Please login now.");
+                    await Login();
                 }
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Error, Please try again");
-                    await this.Register();
+                    Console.WriteLine("Error, Please try again.");
+                    await Register();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.Register();
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await Register();
             }
         }
 
-        // forgot password
+        /// <summary>
+        /// Forgot password process.
+        /// </summary>
         private async Task ForgotPassword()
         {
             try
@@ -164,7 +175,7 @@ namespace ConsoleUI
                 user.Email = Console.ReadLine().Trim();
                 do
                 {
-                    // validate email address
+                    // validates email address
                     if (!Regex.IsMatch(user.Email, regex, RegexOptions.IgnoreCase))
                     {
                         Console.WriteLine("Email address is not valid, Please enter valid email:");
@@ -173,11 +184,11 @@ namespace ConsoleUI
                 }
                 while (!Regex.IsMatch(user.Email, regex, RegexOptions.IgnoreCase));
 
-                // get reset token
-                var result = await AuthService.ForgotPasswordAsync(user);
+                // gets reset token
+                var result = await _authService.ForgotPasswordAsync(user);
                 if (result.Success)
                 {
-                    // store password reset token
+                    // stores password reset token
                     Keys.ResetToken = result.ResetToken;
 
                     Console.WriteLine("Enter new password (ex: newpass@123):");
@@ -185,126 +196,129 @@ namespace ConsoleUI
                     Console.WriteLine("Enter confirm password:");
                     string conPassword = Console.ReadLine().Trim();
 
-                    // reset password
-                    await this.ResetPassword(newPassword, conPassword);
+                    // resets password
+                    await ResetPassword(newPassword, conPassword);
                 }
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Error, Please try again");
-                    await this.ForgotPassword();
+                    Console.WriteLine("Error, Please try again.");
+                    await ForgotPassword();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.ForgotPassword();
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await ForgotPassword();
             }
         }
 
-        // reset password
+        /// <summary>
+        /// Reset password process.
+        /// </summary>
+        /// <param name="newPassword">New password to reset the old password.</param>
+        /// <param name="conPassword">New confirmation password.</param>
         private async Task ResetPassword(string newPassword, string conPassword)
         {
             try
             {
+                // reset password data
                 var user = new ResetPassword
                 {
-                    Password = newPassword,
+                    Password    = newPassword,
                     ConPassword = conPassword,
-                    ResetToken = Keys.ResetToken
+                    ResetToken  = Keys.ResetToken
                 };
 
-                // api calling
-                var result = await AuthService.ResetPasswordAsync(user);
+                // calls the api
+                var result = await _authService.ResetPasswordAsync(user);
                 if (result.Success)
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Successful, Please login");
-                    await this.Login();
+                    Console.WriteLine("Successful, Please login.");
+                    await Login();
                 }
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Error, Please try again");
-                    await this.ResetPassword(newPassword, conPassword);
+                    Console.WriteLine("Error, Please try again.");
+                    await ResetPassword(newPassword, conPassword);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.ForgotPassword();
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await ForgotPassword();
             }
         }
 
-        // login
+        /// <summary>
+        /// Login process.
+        /// </summary>
         private async Task Login()
         {
             try
             {
                 Console.WriteLine();
-                var user = new Login();
+                var user      = new Login();
                 Console.WriteLine("Enter your username:");
                 user.UserName = Console.ReadLine().Trim();
                 Console.WriteLine("Enter your password:");
                 user.Password = Console.ReadLine().Trim();
 
-                // login request
-                var result = await AuthService.UserLoginAsync(user);
+                // sends the login request
+                var result = await _authService.UserLoginAsync(user);
                 if (result.Success)
                 {
-                    // store user tokens
+                    // stores user tokens
                     Keys.AccessToken = result.Token;
                     Keys.RefreshToken = result.RefreshToken;
 
-                    // read JWT token to identify the uer role
+                    // reads JWT token to identify the uer role
                     var handler = new JwtSecurityTokenHandler();
                     Keys.Role = handler.ReadJwtToken(Keys.AccessToken).Payload["role"].ToString();
 
-                    // direct to application internal options
+                    // directs to application internal options
                     Console.WriteLine();
                     Console.WriteLine(("").PadRight(46, '-'));
                     Console.WriteLine("HELLO, WELCOME TO ASSIGNA CONSOLE APPLICATION");
                     Console.WriteLine(("").PadRight(46, '-'));
                     if (Keys.Role == Roles.lead)
                     {
-
-                        await this.LeadOptions(null);
+                        await LeadOptions(null);
                     }
                     else
                     {
-                        await this.MemberOptions(null);
+                        await MemberOptions(null);
                     }
                 }
                 else
                 {
                     Console.WriteLine();
-                    Console.WriteLine("Username or password is incorrect");
-                    await this.Login();
+                    Console.WriteLine("Username or password is incorrect.");
+                    await Login();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.Login();
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await Login();
             }
         }
 
-        // lead options
         /// <summary>
-        /// we use retry param for when the sub operations would be fail,
-        /// then we need user to give retry the options
+        /// Directs to team-lead opetions.
         /// </summary>
-        /// <param name="retry"></param>
-        /// <returns></returns>
-        private async Task LeadOptions(int? retry)
+        /// <param name="type">The type of opertaion.</param>
+        private async Task LeadOptions(int? type)
         {
-            if (retry is null)
+            if (type is null)
             {
                 Console.WriteLine();
                 Console.WriteLine("Select option to continue");
@@ -317,7 +331,7 @@ namespace ConsoleUI
             }
             else
             {
-                selection = (int)retry;
+                selection = (int)type;
             }
 
             switch (selection)
@@ -335,8 +349,8 @@ namespace ConsoleUI
                     Console.WriteLine("7. Task Information");
                     Console.WriteLine("8. Back");
                     Console.WriteLine();
-                    this.selection = int.Parse(Console.ReadLine().Trim());
-                    await this.LeadOperations(1, this.selection);
+                    selection = int.Parse(Console.ReadLine().Trim());
+                    await LeadOperations(1, selection);
                     break;
 
                 case 2:
@@ -346,8 +360,8 @@ namespace ConsoleUI
                     Console.WriteLine("1. Add a new task");
                     Console.WriteLine("2. Back");
                     Console.WriteLine();
-                    this.selection = int.Parse(Console.ReadLine().Trim());
-                    await this.LeadOperations(2, this.selection);
+                    selection = int.Parse(Console.ReadLine().Trim());
+                    await LeadOperations(2, selection);
                     break;
 
                 case 3:
@@ -357,37 +371,29 @@ namespace ConsoleUI
                     if (answer.ToUpper() == "YES")
                     {
                         Console.WriteLine();
-                        Console.WriteLine("You are logged out");
+                        Console.WriteLine("You are logged out.");
                     }
                     else
                     {
-                        await this.LeadOptions(null);
+                        await LeadOptions(null);
                     }
                     break;
 
                 default:
-                    await this.LeadOptions(null);
+                    await LeadOptions(null);
                     break;
             }
         }
 
-        // member options
         /// <summary>
-        /// we use retry param for when the sub operations would be fail,
-        /// then we need user to give retry the options
+        /// Directs to team-member opetions.
         /// </summary>
-        /// <param name="retry"></param>
-        /// <returns></returns>
-        private async Task MemberOptions(int? retry)
+        /// <param name="type">The type of opertaion.</param>
+        private async Task MemberOptions(int? type)
         {
-            if (retry is null)
-            {
+            if (type is null)
                 selection = 1;
-            }
-            else
-            {
-                selection = (int)retry;
-            }
+            selection = (int)type;
 
             switch (selection)
             {
@@ -404,119 +410,117 @@ namespace ConsoleUI
                     Console.WriteLine("7. Task Information");
                     Console.WriteLine("8. Logout");
                     Console.WriteLine();
-                    this.selection = int.Parse(Console.ReadLine().Trim());
-                    await this.MemberOperations(1, this.selection);
+                    selection = int.Parse(Console.ReadLine().Trim());
+                    await MemberOperations(1, selection);
                     break;
             }
         }
 
-        // lead operations
-        private async Task LeadOperations(int group, int selection)
+        /// <summary>
+        /// Manages the team-lead operations.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="selection">The user selected option.</param>
+        private async Task LeadOperations(int type, int selection)
         {
             try
             {
-                switch (group)
+                switch (type)
                 {
                     case 1:
-                        // all
+                        // all tasks
                         if (selection == 1)
                         {
-                            var result = await TaskService.AllTasks();
+                            // gets the result
+                            var result = await _taskService.AllTasks();
                             if (result.Success)
-                            {
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // pendings
+                        // pending tasks
                         if (selection == 2)
                         {
-                            var result = await TaskService.Pendings();
+                            // gets the result
+                            var result = await _taskService.Pendings();
                             if (result.Success)
-                            {
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // completed
+                        // completed tasks
                         if (selection == 3)
                         {
-                            var result = await TaskService.Completed();
+                            // gets the result
+                            var result = await _taskService.Completed();
                             if (result.Success)
-                            {
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // high
+                        // high priority tasks
                         if (selection == 4)
                         {
-                            var result = await TaskService.HighPriority();
+                            // gets the result
+                            var result = await _taskService.HighPriority();
                             if (result.Success)
-                            {
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // medium
+                        // medium priority tasks
                         if (selection == 5)
                         {
-                            var result = await TaskService.MediumPriority();
+                            // gets the result
+                            var result = await _taskService.MediumPriority();
                             if (result.Success)
-                            {
-
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // low
+                        // low priority tasks
                         if (selection == 6)
                         {
-                            var result = await TaskService.LowPriority();
+                            // gets the result
+                            var result = await _taskService.LowPriority();
                             if (result.Success)
-                            {
-                                await this.LeadTasks(group, result.Data!, true);
-                            }
+                                await LeadTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
-                        // info
+                        // task info
                         if (selection == 7)
                         {
-                            var result = await TaskService.AllTasks();
+                            // gets the result
+                            var result = await _taskService.AllTasks();
                             if (result.Success)
                             {
 
-                                await this.LeadTasks(group, result.Data!, false);
+                                await LeadTasks(type, result.Data!, false);
 
                                 Console.WriteLine("1. View information");
                                 Console.WriteLine("2. Back");
@@ -530,22 +534,22 @@ namespace ConsoleUI
                                     int id = int.Parse(Console.ReadLine());
                                     Console.WriteLine();
 
-                                    // calling api
-                                    var info = await TaskService.LeadTaskInfo(id);
+                                    // calls the api
+                                    var info = await _taskService.LeadTaskInfo(id);
                                     if (info.Success)
                                     {
                                         // empty data
                                         if (info.Data!.Count <= 0)
                                         {
-                                            Console.WriteLine("No data found to display");
+                                            Console.WriteLine("No data found to display.");
                                             Console.WriteLine();
-                                            await this.LeadOptions(group);
+                                            await LeadOptions(type);
                                         }
 
                                         var data = info.Data;
 
                                         // task info
-                                        this.TaskInfo(data);
+                                        TaskInfo(data);
 
                                         Console.WriteLine();
                                         Console.WriteLine("1. Edit");
@@ -555,31 +559,30 @@ namespace ConsoleUI
                                         Console.WriteLine();
                                         selection = int.Parse(Console.ReadLine().Trim());
 
-                                        // edit, delete, remind
-                                        await LeadTaskActions(group, selection, data);
+                                        // edit, delete, remind options
+                                        await LeadTaskActions(type, selection, data);
                                     }
                                     else
                                     {
                                         Console.WriteLine();
-                                        Console.WriteLine("Error, Please try again");
-                                        await this.LeadOptions(group);
+                                        Console.WriteLine("Error, Please try again.");
+                                        await LeadOptions(type);
                                     }
                                 }
 
-                                await this.LeadOptions(group);
-
+                                await LeadOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
                         // back
                         if (selection == 8)
                         {
-                            await this.LeadOptions(null);
+                            await LeadOptions(null);
                         }
                         break;
 
@@ -595,31 +598,31 @@ namespace ConsoleUI
                             Console.WriteLine();
                             selection = int.Parse(Console.ReadLine().Trim());
 
-                            // save task
+                            // saves the task
                             if (selection == 1)
                             {
-                                // calling api
-                                var result = await TaskService.SaveTaskAsync(task);
+                                // calls the api
+                                var result = await _taskService.SaveTaskAsync(task);
                                 if (result.Success)
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("Successful");
-                                    await this.LeadOptions(group);
+                                    Console.WriteLine("Successful.");
+                                    await LeadOptions(type);
                                 }
                                 else
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("Error, Please try again");
-                                    await this.LeadOptions(group);
+                                    Console.WriteLine("Error, Please try again.");
+                                    await LeadOptions(type);
                                 }
                             }
 
-                            await this.LeadOptions(group);
+                            await LeadOptions(type);
                         }
                         // back
                         if (selection == 2)
                         {
-                            await this.LeadOptions(null);
+                            await LeadOptions(null);
                         }
                         break;
                 }
@@ -627,122 +630,116 @@ namespace ConsoleUI
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.LeadOptions(null);
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await LeadOptions(null);
             }
         }
 
-        // member operations
-        private async Task MemberOperations(int group, int selection)
+        /// <summary>
+        /// Manages the team-member operations.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="selection">The type of task data. (e.g. pending)</param>
+        private async Task MemberOperations(int type, int selection)
         {
             try
             {
-                switch (group)
+                switch (type)
                 {
                     case 1:
-                        // all
+                        // all tasks
                         if (selection == 1)
                         {
-                            var result = await TaskService.AllTasks();
+                            // calls the api
+                            var result = await _taskService.AllTasks();
                             if (result.Success)
-                            {
-
-                                // all tasks
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // pendings
+                        // pending tasks
                         if (selection == 2)
                         {
-                            var result = await TaskService.Pendings();
+                            // calls the api
+                            var result = await _taskService.Pendings();
                             if (result.Success)
-                            {
-
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // completed
+                        // completed tasks
                         if (selection == 3)
                         {
-                            var result = await TaskService.Completed();
+                            // calls the api
+                            var result = await _taskService.Completed();
                             if (result.Success)
-                            {
-
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // high
+                        // high priority tasks
                         if (selection == 4)
                         {
-                            var result = await TaskService.HighPriority();
+                            // calls the api
+                            var result = await _taskService.HighPriority();
                             if (result.Success)
-                            {
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // medium
+                        // medium priority tasks
                         if (selection == 5)
                         {
-                            var result = await TaskService.MediumPriority();
+                            // calls the api
+                            var result = await _taskService.MediumPriority();
                             if (result.Success)
-                            {
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // low
+                        // low priority tasks
                         if (selection == 6)
                         {
-                            var result = await TaskService.LowPriority();
+                            // calls the api
+                            var result = await _taskService.LowPriority();
                             if (result.Success)
-                            {
-                                await this.MemberTasks(group, result.Data!, true);
-                            }
+                                await MemberTasks(type, result.Data!, true);
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
-                        // info
+                        // task info
                         if (selection == 7)
                         {
-                            var result = await TaskService.AllTasks();
+                            // calls the api
+                            var result = await _taskService.AllTasks();
                             if (result.Success)
                             {
-
-                                await this.MemberTasks(group, result.Data!, false);
+                                await MemberTasks(type, result.Data!, false);
 
                                 Console.WriteLine("1. View information");
                                 Console.WriteLine("2. Back");
@@ -757,21 +754,21 @@ namespace ConsoleUI
                                     Console.WriteLine();
 
                                     // calling api
-                                    var info = await TaskService.MemberTaskInfo(id);
+                                    var info = await _taskService.MemberTaskInfo(id);
                                     if (info.Success)
                                     {
                                         // empty data
                                         if (info.Data!.Count <= 0)
                                         {
-                                            Console.WriteLine("No data found to display");
+                                            Console.WriteLine("No data found to display.");
                                             Console.WriteLine();
-                                            await this.MemberOptions(group);
+                                            await MemberOptions(type);
                                         }
 
                                         var data = info.Data;
 
                                         // task info
-                                        this.TaskInfo(data);
+                                        TaskInfo(data);
 
                                         Console.WriteLine();
                                         Console.WriteLine("1. Add note");
@@ -780,25 +777,24 @@ namespace ConsoleUI
                                         Console.WriteLine();
                                         selection = int.Parse(Console.ReadLine().Trim());
 
-                                        // note, done
-                                        await MemberTaskActions(group, selection, data);
+                                        // note, done options
+                                        await MemberTaskActions(type, selection, data);
                                     }
                                     else
                                     {
                                         Console.WriteLine();
-                                        Console.WriteLine("Error, Please try again");
-                                        await this.MemberOptions(group);
+                                        Console.WriteLine("Error, Please try again.");
+                                        await MemberOptions(type);
                                     }
                                 }
 
-                                await this.MemberOptions(group);
-
+                                await MemberOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
                         if (selection == 8)
@@ -808,16 +804,16 @@ namespace ConsoleUI
                             if (answer.ToUpper() == "YES")
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("You are logged out");
+                                Console.WriteLine("You are logged out.");
                             }
                             else
                             {
-                                await this.LeadOptions(null);
+                                await LeadOptions(null);
                             }
                         }
                         else
                         {
-                            await this.MemberOptions(group);
+                            await MemberOptions(type);
                         }
                         break;
                 }
@@ -825,23 +821,28 @@ namespace ConsoleUI
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.MemberOptions(null);
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await MemberOptions(null);
             }
         }
 
-        #region helper methods
+        // Helper methods -----------------------------------------------------------------------------------
 
-        // tasks table render method
-        private async Task LeadTasks(int group, List<Tasks> data, bool back)
+        /// <summary>
+        /// Team-lead tasks table render method.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="data">The data to manage.</param>
+        /// <param name="back">Indicates whether the user needs to go back or not.</param>
+        private async Task LeadTasks(int type, List<Models.Task> data, bool back)
         {
             // empty data
             if (data!.Count <= 0)
             {
                 Console.WriteLine();
-                Console.WriteLine("No data found to display");
-                await this.LeadOptions(group);
+                Console.WriteLine("No data found to display.");
+                await LeadOptions(type);
             }
             else
             {
@@ -854,10 +855,10 @@ namespace ConsoleUI
                 {
                     Console.WriteLine
                     (
-                        String.Format
+                        string.Format
                         (
                             "{0,-3} | {1,-24} | {2,-12}",
-                            itm.TskId, itm.TskTitle, itm.Deadline.ToString("yyyy-MM-dd")
+                            itm.TaskId, itm.TaskTitle, itm.Deadline.ToString("yyyy-MM-dd")
                         )
                     );
                 }
@@ -871,19 +872,26 @@ namespace ConsoleUI
                     Console.WriteLine();
 
                     Console.ReadLine();
-                    await this.LeadOptions(group);
+                    await LeadOptions(type);
                 }
             }
 
         }
-        private async Task MemberTasks(int group, List<Tasks> data, bool back)
+
+        /// <summary>
+        /// Tema-member tasks table render method.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="data">The data to manage.</param>
+        /// <param name="back">Indicates whether the user needs to go back or not.</param>
+        private async Task MemberTasks(int type, List<Models.Task> data, bool back)
         {
             // empty data
             if (data!.Count <= 0)
             {
                 Console.WriteLine();
-                Console.WriteLine("No data found to display");
-                await this.MemberOptions(group);
+                Console.WriteLine("No data found to display.");
+                await MemberOptions(type);
             }
             else
             {
@@ -896,10 +904,10 @@ namespace ConsoleUI
                 {
                     Console.WriteLine
                     (
-                        String.Format
+                        string.Format
                         (
                             "{0,-3} | {1,-24} | {2,-12}",
-                            itm.TskId, itm.TskTitle, itm.Deadline.ToString("yyyy-MM-dd")
+                            itm.TaskId, itm.TaskTitle, itm.Deadline.ToString("yyyy-MM-dd")
                         )
                     );
                 }
@@ -913,79 +921,80 @@ namespace ConsoleUI
                     Console.WriteLine();
 
                     Console.ReadLine();
-                    await this.MemberOptions(group);
+                    await MemberOptions(type);
                 }
             }
-
         }
 
-        // task info
-        void TaskInfo(List<Tasks> data)
+        /// <summary>
+        /// Renders the task info.
+        /// </summary>
+        /// <param name="data">The data containing the task infomation.</param>
+        private void TaskInfo(List<Models.Task> data)
         {
             // display data
-            Console.WriteLine($"Id        :    {data.First().TskId}");
-            Console.WriteLine($"Title     :    {data.First().TskTitle}");
+            Console.WriteLine($"Id        :    {data.First().TaskId}");
+            Console.WriteLine($"Title     :    {data.First().TaskTitle}");
             Console.WriteLine($"Category  :    {data.First().CatName}");
-#pragma warning disable IDE0071 // Simplify interpolation
             Console.WriteLine($"Deadline  :    {data.First().Deadline.ToString("yyyy-MM-dd")}");
-#pragma warning restore IDE0071 // Simplify interpolation
-            string priority = (data.First().PriHigh) ? "High" : (data.First().PriMedium) ? "Medium" : "Low";
+
+            string priority = (data.First().HighPriority) ? "High" : (data.First().MediumPriority) ? "Medium" : "Low";
+
             Console.WriteLine($"Priority  :    {priority}");
             Console.WriteLine($"Assignee  :    {data.First().FirstName}");
-            Console.WriteLine($"Note      :    {data.First().TskNote}");
+            Console.WriteLine($"Note      :    {data.First().TaskNote}");
             string status = (data.First().Pending) ? "Pending" : "Completed";
             Console.WriteLine($"Status    :    {status}");
             string? note = (data.First().UserNote == empty) ? "Not available" : data.First().UserNote;
             Console.WriteLine($"Asi.Note  :    {note}");
         }
 
-        // new task
-        private async Task<AddTask> NewTask()
+        /// <summary>
+        /// Makes the task object data.
+        /// </summary>
+        private async Task<Models.AddTask> NewTask()
         {
-            var task = new AddTask();
+            var task = new Models.AddTask();
+
             try
             {
                 Console.WriteLine();
                 Console.WriteLine("Enter task title:");
-                task.TskTitle = Console.ReadLine().Trim();
+                task.TaskTitle = Console.ReadLine().Trim();
                 Console.WriteLine("Select category:");
-                var category = await TaskService.AllCategories();
+
+                // gets the categories
+                var category = await _taskService.AllCategories();
                 if (category.Success)
                 {
                     if (category.Data!.Count > 0)
-                    {
                         foreach (var itm in category.Data)
                         {
                             Console.WriteLine($"{itm.CatId}. {itm.CatName}");
                         }
 
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error, Enter any number to continue:");
-                    }
+                    Console.WriteLine("Error, Enter any number to continue:");
                 }
                 else
                 {
                     Console.WriteLine("Error, Enter any number to continue:");
                 }
-                task.TskCategory = int.Parse(Console.ReadLine().Trim());
+
+                task.TaskCategory = int.Parse(Console.ReadLine().Trim());
                 Console.WriteLine("Enter due date (yyyy-MM-dd):");
-                task.Deadline = Console.ReadLine().Trim();
-                string[] formats = { "yyyy-MM-dd" };
-                bool valid = false;
+                task.Deadline     = Console.ReadLine().Trim();
+                string[] formats  = { "yyyy-MM-dd" };
+                bool valid        = false;
+
                 do
                 {
-                    if (DateTime.TryParseExact(task.Deadline, formats,
-                        CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
-                    {
+                    if (DateTime.TryParseExact(task.Deadline, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                         valid = true;
-                    }
                     else
                     {
                         Console.WriteLine("Not valid format, Enter due date (yyyy-MM-dd):");
                         task.Deadline = Console.ReadLine().Trim();
-                        valid = false;
+                        valid         = false;
                     }
 
                     date = Convert.ToDateTime(task.Deadline);
@@ -993,78 +1002,78 @@ namespace ConsoleUI
                     {
                         Console.WriteLine("Please enter future date:");
                         task.Deadline = Console.ReadLine().Trim();
-                        valid = false;
+                        valid         = false;
                     }
                     else
                     {
                         valid = true;
                     }
                 }
+
                 while (!valid);
                 Console.WriteLine("Select task assignee:");
-                var memeber = await TaskService.TeamMembers();
+
+                // gets the team memebers
+                var memeber = await _taskService.TeamMembers();
                 if (memeber.Success)
                 {
                     if (memeber.Data!.Count > 0)
-                    {
                         foreach (var itm in memeber.Data)
                         {
                             Console.WriteLine($"{itm.UserId}. {itm.FirstName}");
                         }
 
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error, Enter any number to continue:");
-                    }
+                    Console.WriteLine("Error, Enter any number to continue:");
                 }
                 else
                 {
                     Console.WriteLine("Error, Enter any number to continue:");
                 }
+
                 task.Member = int.Parse(Console.ReadLine().Trim());
                 Console.WriteLine("Select task priority:");
-                var priority = await TaskService.Priorities();
+
+                // gets the task priorities
+                var priority = await _taskService.Priorities();
                 if (priority.Success)
                 {
                     if (priority.Data!.Count > 0)
-                    {
                         foreach (var itm in priority.Data)
                         {
-                            Console.WriteLine($"- {itm.PriName}");
+                            Console.WriteLine($"- {itm.PriorityName}");
                         }
 
-                    }
-                    else
-                    {
-                        Console.WriteLine("Error, Enter High, Medium or Low to continue:");
-                    }
+                    Console.WriteLine("Error, Enter High, Medium or Low to continue:");
                 }
                 else
                 {
                     Console.WriteLine("Error, Enter High, Medium or Low to continue:");
                 }
+
                 task.Priority = Console.ReadLine().Trim();
-#pragma warning disable IDE0057 // Use range operator
                 task.Priority = $"{char.ToUpper(task.Priority[0])}{task.Priority.Substring(1)}";
-#pragma warning restore IDE0057 // Use range operator
                 Console.WriteLine("Enter task note:");
-                task.TskNote = Console.ReadLine().Trim();
+                task.TaskNote = Console.ReadLine().Trim();
                 Console.WriteLine();
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.LeadOptions(null);
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await LeadOptions(null);
             }
 
             return task;
         }
 
-        // edit, delete, remind task
-        private async Task LeadTaskActions(int group, int selection, List<Tasks> data)
+        /// <summary>
+        /// Manages the edit, delete, remind operations.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="selection">The user selected option.</param>
+        /// <param name="data">The data containing the task infomation.</param>
+        private async Task LeadTaskActions(int type, int selection, List<Models.Task> data)
         {
             try
             {
@@ -1072,69 +1081,64 @@ namespace ConsoleUI
 
                 switch (selection)
                 {
-                    // edit
+                    // edit task
                     case 1:
                         if (data.First().Complete)
                         {
-                            Console.WriteLine("Already completed");
-                            await this.MemberOptions(group);
+                            Console.WriteLine("Already completed.");
+                            await MemberOptions(type);
                         }
-                        var task = new EditTask
+
+                        // edit task data
+                        var task = new Models.EditTask
                         {
-                            TskId = data.First().TskId
+                            TaskId = data.First().TaskId
                         };
+
                         Console.WriteLine("NOTE: KEEP THE SAME VALUE, PRESS [-]");
                         Console.WriteLine();
                         Console.WriteLine("Enter task title:");
-                        task.TskTitle = Console.ReadLine().Trim();
-                        if (task.TskTitle == "-")
-                        {
-                            task.TskTitle = data.First().TskTitle;
-                        }                    
+                        task.TaskTitle = Console.ReadLine().Trim();
+
+                        if (task.TaskTitle == "-")
+                            task.TaskTitle = data.First().TaskTitle;
+
                         Console.WriteLine("Select category:");
-                        var category = await TaskService.AllCategories();
+
+                        // gets all categories
+                        var category = await _taskService.AllCategories();
                         if (category.Success)
                         {
                             if (category.Data!.Count > 0)
-                            {
                                 foreach (var itm in category.Data)
                                 {
                                     Console.WriteLine($"{itm.CatId}. {itm.CatName}");
                                 }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Error, Enter any number to continue:");
-                            }
+
+                            Console.WriteLine("Error, Enter any number to continue:");
                         }
                         else
                         {
                             Console.WriteLine("Error, Enter any number to continue:");
                         }
+
                         string value = Console.ReadLine().Trim();
                         if (value == "-")
-                        {
-                            task.TskCategory = data.First().CatId;
-                        }
-                        else
-                        {
-                            task.TskCategory = int.Parse(value);
-                        }
+                            task.TaskCategory = data.First().CatId;
+                        task.TaskCategory = int.Parse(value);
+
                         Console.WriteLine("Enter due date (yyyy-MM-dd):");
+
                         task.Deadline = Console.ReadLine().Trim();
                         if (task.Deadline == "-")
-                        {
                             task.Deadline = data.First().Deadline.ToString("yyyy-MM-dd");
-                        }
+
                         string[] formats = { "yyyy-MM-dd" };
                         bool valid;
                         do
                         {
-                            if (DateTime.TryParseExact(task.Deadline, formats,
-                                CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
-                            {
+                            if (DateTime.TryParseExact(task.Deadline, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime date))
                                 valid = true;
-                            }
                             else
                             {
                                 Console.WriteLine("Not valid format, Enter due date (yyyy-MM-dd):");
@@ -1154,103 +1158,97 @@ namespace ConsoleUI
                                 valid = true;
                             }
                         }
+
                         while (!valid);
                         Console.WriteLine("Select task assignee:");
-                        var memeber = await TaskService.TeamMembers();
+
+                        // gets team members
+                        var memeber = await _taskService.TeamMembers();
                         if (memeber.Success)
                         {
                             if (memeber.Data!.Count > 0)
-                            {
                                 foreach (var itm in memeber.Data)
                                 {
                                     Console.WriteLine($"{itm.UserId}. {itm.FirstName}");
                                 }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Error, Enter any number to continue:");
-                            }
+
+                            Console.WriteLine("Error, Enter any number to continue:");
                         }
                         else
                         {
                             Console.WriteLine("Error, Enter any number to continue:");
                         }
+
                         value = Console.ReadLine().Trim();
                         if (value == "-")
-                        {
                             task.Member = data.First().UserId;
-                        }
-                        else
-                        {
-                            task.Member = int.Parse(value);
-                        }
+                        task.Member = int.Parse(value);
+
                         Console.WriteLine("Select task priority:");
-                        var priority = await TaskService.Priorities();
+
+                        // gets task priorities
+                        var priority = await _taskService.Priorities();
                         if (priority.Success)
                         {
                             if (priority.Data!.Count > 0)
-                            {
                                 foreach (var itm in priority.Data)
                                 {
-                                    Console.WriteLine($"- {itm.PriName}");
+                                    Console.WriteLine($"- {itm.PriorityName}");
                                 }
-                            }
-                            else
-                            {
-                                Console.WriteLine("Error, Enter High, Medium or Low to continue:");
-                            }
+
+                            Console.WriteLine("Error, Enter High, Medium or Low to continue:");
                         }
                         else
                         {
                             Console.WriteLine("Error, Enter High, Medium or Low to continue:");
                         }
+
                         task.Priority = Console.ReadLine().Trim();
                         if (task.Priority == "-")
-                        {
-                            task.Priority = (data.First().PriHigh) ? "High" : (data.First().PriMedium) ? "Medium" : "Low";
-                        }
-#pragma warning disable IDE0057 // Use range operator
+                            task.Priority = (data.First().HighPriority) ? "High" : (data.First().MediumPriority) ? "Medium" : "Low";
+
                         task.Priority = $"{char.ToUpper(task.Priority[0])}{task.Priority.Substring(1)}";
-#pragma warning restore IDE0057 // Use range operator
+
                         Console.WriteLine("Enter task note:");
-                        task.TskNote = Console.ReadLine().Trim();
-                        if (task.TskNote == "-")
-                        {
-                            task.TskNote = data.First().TskNote;
-                        }
+
+                        task.TaskNote = Console.ReadLine().Trim();
+                        if (task.TaskNote == "-")
+                            task.TaskNote = data.First().TaskNote;
+
                         Console.WriteLine();
 
                         Console.WriteLine("1. Save");
                         Console.WriteLine("2. Back");
                         Console.WriteLine();
-                        selection = int.Parse(Console.ReadLine().Trim());
 
-                        // calling api
+                        selection = int.Parse(Console.ReadLine().Trim());
                         if (selection == 1)
                         {
-                            var edit = await TaskService.EditTaskAsync(task);
+                            // calls the api
+                            var edit = await _taskService.EditTaskAsync(task);
                             if (edit.Success)
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Successful");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Successful.");
+                                await LeadOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
 
-                        await this.LeadOptions(group);
+                        await LeadOptions(type);
 
                         break;
-                    // delete
+                    // delete task
                     case 2:
-                        var delete = new DeleteTask();
+                        var delete = new Models.DeleteTask();
+
                         Console.WriteLine("Enter task id to delete");
-                        delete.TskId = int.Parse(Console.ReadLine().Trim());
+                        delete.TaskId = int.Parse(Console.ReadLine().Trim());
                         Console.WriteLine();
 
                         Console.WriteLine("1. Delete");
@@ -1258,32 +1256,33 @@ namespace ConsoleUI
                         Console.WriteLine();
                         selection = int.Parse(Console.ReadLine().Trim());
 
-                        // calling api
                         if (selection == 1)
                         {
-                            var result = await TaskService.DeleteTaskAsync(delete);
+                            // calls the api
+                            var result = await _taskService.DeleteTaskAsync(delete);
                             if (result.Success)
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Successful");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Successful.");
+                                await LeadOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
 
-                        await this.LeadOptions(group);
+                        await LeadOptions(type);
 
                         break;
-                    // remind
+                    // send remind
                     case 3:
-                        var remind = new SendEmail();
+                        var remind = new Models.SendEmail();
+
                         Console.WriteLine("Enter task id:");
-                        remind.TskId = int.Parse(Console.ReadLine().Trim());
+                        remind.TaskId = int.Parse(Console.ReadLine().Trim());
                         Console.WriteLine("Enter your message:");
                         remind.Message = Console.ReadLine().Trim();
                         Console.WriteLine();
@@ -1292,30 +1291,30 @@ namespace ConsoleUI
                         Console.WriteLine("2. Back");
                         Console.WriteLine();
                         selection = int.Parse(Console.ReadLine().Trim());
-
-                        // calling api
+                        
                         if (selection == 1)
                         {
-                            var result = await TaskService.SendRemind(remind);
+                            // calls the api
+                            var result = await _taskService.SendRemind(remind);
                             if (result.Success)
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Successful");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Successful.");
+                                await LeadOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.LeadOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await LeadOptions(type);
                             }
                         }
 
-                        await this.LeadOptions(group);
+                        await LeadOptions(type);
 
                         break;
                     default:
-                        await this.LeadOptions(group);
+                        await LeadOptions(type);
                         break;
                 }
             }
@@ -1323,14 +1322,19 @@ namespace ConsoleUI
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.LeadOptions(null);
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await LeadOptions(null);
             }
         }
 
-        // add note and mark as done
-        private async Task MemberTaskActions(int group, int selection, List<Tasks> data)
+        /// <summary>
+        /// Manages  add note and mark as done operations.
+        /// </summary>
+        /// <param name="type">The type of operation.</param>
+        /// <param name="selection">The user selected option.</param>
+        /// <param name="data">The data containing the task infomation.</param>
+        private async Task MemberTaskActions(int type, int selection, List<Models.Task> data)
         {
             try
             {
@@ -1341,13 +1345,16 @@ namespace ConsoleUI
                     case 1:
                         if (data.First().Complete)
                         {
-                            Console.WriteLine("Already completed");
-                            await this.MemberOptions(group);
+                            Console.WriteLine("Already completed.");
+                            await MemberOptions(type);
                         }
-                        var note = new AddNote
+
+                        // note data
+                        var note = new Models.AddNote
                         {
-                            TskId = data.First().TskId
+                            TaskId = data.First().TaskId
                         };
+
                         Console.WriteLine();
                         Console.WriteLine("Enter your note:");
                         note.UserNote = Console.ReadLine().Trim();
@@ -1357,34 +1364,38 @@ namespace ConsoleUI
                         Console.WriteLine("2. Back");
                         Console.WriteLine();
                         selection = int.Parse(Console.ReadLine().Trim());
-
-                        // calling api
+                       
                         if (selection == 1)
                         {
-                            var edit = await TaskService.AddTaskNoteAsync(note);
+                            // calls the api
+                            var edit = await _taskService.AddTaskNoteAsync(note);
                             if (edit.Success)
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Successful");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Successful.");
+                                await MemberOptions(type);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Error, Please try again");
-                                await this.MemberOptions(group);
+                                Console.WriteLine("Error, Please try again.");
+                                await MemberOptions(type);
                             }
                         }
 
-                        await this.MemberOptions(group);
+                        await MemberOptions(type);
 
                         break;
+
                     // mark done
                     case 2:
-                        var done = new MarkDone
+
+                        // mark as done data
+                        var done = new Models.MarkDone
                         {
-                            TskId = data.First().TskId
+                            TaskId = data.First().TaskId
                         };
+
                         Console.WriteLine();
                         Console.WriteLine("Are you sure to mark as done? [Yes / No]");
                         string answer = Console.ReadLine().Trim();
@@ -1396,46 +1407,44 @@ namespace ConsoleUI
                             Console.WriteLine();
                             selection = int.Parse(Console.ReadLine().Trim());
 
-                            // calling api
                             if (selection == 1)
                             {
-                                var edit = await TaskService.MarkasDoneAsync(done);
-                                if (edit.Success)
+                                // calls the api
+                                var mark = await _taskService.MarkasDoneAsync(done);
+                                if (mark.Success)
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("Successful");
-                                    await this.MemberOptions(group);
+                                    Console.WriteLine("Successful.");
+                                    await MemberOptions(type);
                                 }
                                 else
                                 {
                                     Console.WriteLine();
-                                    Console.WriteLine("Error, Please try again");
-                                    await this.MemberOptions(group);
+                                    Console.WriteLine("Error, Please try again.");
+                                    await MemberOptions(type);
                                 }
                             }
                         }
                         else
                         {
-                            await this.MemberOptions(group);
+                            await MemberOptions(type);
                         }
 
-                        await this.MemberOptions(group);
+                        await MemberOptions(type);
 
                         break;
                     default:
-                        await this.MemberOptions(group);
+                        await MemberOptions(type);
                         break;
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine();
-                Console.WriteLine("Error, Please try again");
-                Logger.LogError(ex.Message);
-                await this.MemberOptions(null);
+                Console.WriteLine("Error, Please try again.");
+                _logger.LogError(ex.Message);
+                await MemberOptions(null);
             }
         }
-
-        #endregion helper methods
     }
 }

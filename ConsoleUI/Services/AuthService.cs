@@ -11,162 +11,111 @@ using System.Threading.Tasks;
 
 namespace ConsoleUI.Services
 {
+    /// <summary>
+    /// Implementation for the IAuthService
+    /// </summary>
     public class AuthService : IAuthService
     {
-        // services
-        private ILogger<Startup> Logger { get; }
-        private AssignaClient Client { get; }
+        // Services
+        private ILogger<Startup> _logger;
+        private AssignaClient    _client;
 
         public AuthService(ILogger<Startup> logger, AssignaClient apiClient)
         {
-            Logger = logger;
-            Client = apiClient;
+            _logger = logger;
+            _client = apiClient;
         }
 
-        // user registration
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="data">The user registration data.</param>
+        /// <returns>
+        /// An <see cref="AuthResult"/> result.
+        /// </returns>
         public async Task<AuthResult> UserRegisterAsync(Register data)
         {
             try
             {
+                // registration data
                 var register = new Register
                 {
-                    UserName = data.UserName,
+                    UserName  = data.UserName,
                     FirstName = data.FirstName,
-                    Email = data.Email,
-                    Password = data.Password,
-                    Role = data.Role
+                    Email     = data.Email,
+                    Password  = data.Password,
+                    Role      = data.Role
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(register),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-                // calling api
-                using var response = await Client.Request.PostAsync("user/register", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // deserializing
-                    AuthResult? authResult = JsonConvert.DeserializeObject<AuthResult>(result);
-
-                    return authResult ?? new AuthResult();
-                }
-                else
-                {
-                    return new AuthResult
-                    {
-                        Success = false,
-                        Message = "Request not succeeded"
-                    };
-                }
+                // returns the result
+                return await MakePostRequest(data: register, url: "user/register");
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return new AuthResult
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // user login
+        /// <summary>
+        /// Logins a new user.
+        /// </summary>
+        /// <param name="data">The user login data.</param>
+        /// <returns>
+        /// An <see cref="AuthResult"/> result.
+        /// </returns>
         public async Task<AuthResult> UserLoginAsync(Login data)
         {
             try
             {
+                // user login data
                 var register = new Register
                 {
                     UserName = data.UserName,
                     Password = data.Password,
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(register),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-                // calling api
-                using var response = await Client.Request.PostAsync("user/login", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // deserializing
-                    AuthResult? authResult = JsonConvert.DeserializeObject<AuthResult>(result);
-
-                    return authResult ?? new AuthResult();
-                }
-                else
-                {
-                    return new AuthResult
-                    {
-                        Success = false,
-                        Message = "Request not succeeded"
-                    };
-                }
+                // returns the result
+                return await MakePostRequest(data: register, url: "user/login");
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return new AuthResult
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // forgot password
+        /// <summary>
+        /// Stores the forgot password token for a user.
+        /// </summary>
+        /// <param name="data">The data containing the forgot password information.</param>
+        /// <returns>
+        /// An <see cref="AuthResult"/> result.
+        /// </returns>
         public async Task<AuthResult> ForgotPasswordAsync(ForgotPassword data)
         {
             try
             {
-                var register = new ForgotPassword
+                // forgot password data
+                var forgot = new ForgotPassword
                 {
                     Email = data.Email
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(register),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-                // calling api
-                using var response = await Client.Request.PostAsync("user/forgot-password", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // deserializing
-                    AuthResult? authResult = JsonConvert.DeserializeObject<AuthResult>(result);
-
-                    return authResult ?? new AuthResult();
-                }
-                else
-                {
-                    return new AuthResult
-                    {
-                        Success = false,
-                        Message = "Request not succeeded"
-                    };
-                }
+                // returns the result
+                return await MakePostRequest(data: forgot, url: "user/forgot-password");
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return new AuthResult
                 {
                     Success = false,
@@ -175,49 +124,31 @@ namespace ConsoleUI.Services
             }
         }
 
-        // reset password
+        /// <summary>
+        /// Resets the user's password.
+        /// </summary>
+        /// <param name="data">The data containing the reset password information.</param>
+        /// <returns>
+        /// A <see cref="AuthResult"/> indicating the outcome of the password reset.
+        /// </returns>
         public async Task<AuthResult> ResetPasswordAsync(ResetPassword data)
         {
             try
             {
-                var register = new ResetPassword
+                // password reset data
+                var reset = new ResetPassword
                 {
-                    Password = data.Password,
+                    Password    = data.Password,
                     ConPassword = data.ConPassword,
-                    ResetToken = data.ResetToken
+                    ResetToken  = data.ResetToken
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(register),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-                // calling api
-                using var response = await Client.Request.PostAsync("user/reset-password", content);
-                if (response.IsSuccessStatusCode)
-                {
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // deserializing
-                    AuthResult? authResult = JsonConvert.DeserializeObject<AuthResult>(result);
-
-                    return authResult ?? new AuthResult();
-                }
-                else
-                {
-                    return new AuthResult
-                    {
-                        Success = false,
-                        Message = "Request not succeeded"
-                    };
-                }
+                // returns the result
+                return await MakePostRequest(reset, "user/reset-password");
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return new AuthResult
                 {
                     Success = false,
@@ -226,33 +157,65 @@ namespace ConsoleUI.Services
             }
         }
 
-        // refresh token
+        /// <summary>
+        /// Gets the new refresh token.
+        /// </summary>
+        /// <param name="data">The data containing the token information.</param>
+        /// <returns>
+        /// A <see cref="AuthResult"/> indicating the outcome of the token refresh.
+        /// </returns>
         public async Task<AuthResult> RefreshTokenAsync(RefreshToken data)
         {
             try
             {
-                var register = new RefreshToken
+                // token refresh data
+                var refresh = new RefreshToken
                 {
                     TokenRefresh=data.TokenRefresh
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(register),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
+                // returns the result
+                return await MakePostRequest(refresh, "user/refresh-token");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new AuthResult
+                {
+                    Success = false,
+                    Message = "Internal error"
+                };
+            }
+        }
 
-                // calling api
-                using var response = await Client.Request.PostAsync("user/refresh-token", content);
+        // Helpers ----------------------------------------------------------
+
+        /// <summary>
+        /// Makes post request to the endpoint.
+        /// </summary>
+        /// <param name="data">The data to be sent.</param>
+        /// <param name="url">The endpoint url.</param>
+        /// <returns>
+        ///  A <see cref="AuthResult"/> indicating the outcome of the operation.
+        /// </returns>
+        private async Task<AuthResult> MakePostRequest<T>(T data, string url)
+        {
+            try
+            {
+                // serializing
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+
+                // calls the api
+                using var response = await _client.Request.PostAsync(url, content);
                 if (response.IsSuccessStatusCode)
                 {
+                    // reads the response
                     string result = await response.Content.ReadAsStringAsync();
 
                     // deserializing
                     AuthResult? authResult = JsonConvert.DeserializeObject<AuthResult>(result);
 
+                    // returns the result
                     return authResult ?? new AuthResult();
                 }
                 else
@@ -260,17 +223,17 @@ namespace ConsoleUI.Services
                     return new AuthResult
                     {
                         Success = false,
-                        Message = "Request not succeeded"
+                        Message = "Request not succeeded."
                     };
                 }
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex.Message);
+                _logger.LogError(ex.Message);
                 return new AuthResult
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }

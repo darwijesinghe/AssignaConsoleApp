@@ -14,17 +14,16 @@ namespace ConsoleUI
 {
     class Program
     {
-        // main method
         static async Task Main(string[] args)
         {
             var builder = new ConfigurationBuilder();
             BuildConfig(builder);
 
-            // add services
+            // Add services
             var host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
-                    // add NLog logging
+                    // Add NLog logging
                     services.AddLogging(loggingBuilder => {
 
                         loggingBuilder.ClearProviders();
@@ -32,32 +31,35 @@ namespace ConsoleUI
 
                     });
 
-                    // add configurations
+                    // Register configurations
                     services.AddSingleton(context.Configuration);
 
-                    // add httpclient
+                    // Register httpclient
                     services.AddHttpClient<AssignaClient>();
 
-                    // auth service
+                    // Register auth service
                     services.AddTransient<IAuthService, AuthService>();
 
-                    // task service
+                    // Register task service
                     services.AddTransient<ITaskService, TaskService>();
 
                 })
                 .Build();
 
+            // Automatically resolve and inject any dependencies required by the Startup class's constructor.
+            // This helps in creating instances of classes that have dependencies registered in the DI container.
+
             var service = ActivatorUtilities.CreateInstance<Startup>(host.Services);
             await service.Run();
         }
 
-        // configure appsettings
+        // Configure appsettings
         static void BuildConfig(IConfigurationBuilder builder)
         {
             builder.SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: false)
-                .AddEnvironmentVariables();
+                   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                   .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: false)
+                   .AddEnvironmentVariables();
         }
     }
 }

@@ -1,10 +1,23 @@
 ﻿namespace ConsoleUI.Auth
 {
+    /// <summary>
+    /// Model for handle the reset password
+    /// </summary>
     public class ResetPassword
     {
-        // reset password
-        public string? Password { get; set; }
+        /// <summary>
+        /// Password
+        /// </summary>
+        public string? Password    { get; set; }
+
+        /// <summary>
+        /// Confirm password
+        /// </summary>
         public string? ConPassword { get; set; }
-        public string? ResetToken { get; set; }
+
+        /// <summary>
+        /// Password reset token
+        /// </summary>
+        public string? ResetToken  { get; set; }
     }
 }

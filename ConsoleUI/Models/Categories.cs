@@ -2,11 +2,19 @@
 
 namespace ConsoleUI.Models
 {
+    /// <summary>
+    /// Model for categories
+    /// </summary>
     public class Categories
     {
-        public int CatId { get; set; }
-        public string? CatName { get; set; }
+        /// <summary>
+        /// Category ID
+        /// </summary>
+        public int CatId      { get; set; }
+
+        /// <summary>
+        /// Category name
+        /// </summary>
+        public string CatName { get; set; }
     }
-
-
 }

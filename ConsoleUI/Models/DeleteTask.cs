@@ -1,8 +1,13 @@
 ﻿namespace ConsoleUI.Models
 {
+    /// <summary>
+    /// Model for delete a task
+    /// </summary>
     public class DeleteTask
     {
-        // delete a task
-        public int TskId { get; set; }
+        /// <summary>
+        /// Task ID
+        /// </summary>
+        public int TaskId { get; set; }
     }
 }

@@ -1,9 +1,18 @@
 ﻿namespace ConsoleUI.Models
 {
+    /// <summary>
+    /// Model for send an email
+    /// </summary>
     public class SendEmail
     {
-        // send an email
-        public int TskId { get; set; }
-        public string? Message { get; set; }
+        /// <summary>
+        /// Task ID
+        /// </summary>
+        public int TaskId     { get; set; }
+
+        /// <summary>
+        /// Mail message
+        /// </summary>
+        public string Message { get; set; }
     }
 }

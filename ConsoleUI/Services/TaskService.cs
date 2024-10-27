@@ -10,133 +10,139 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Task = ConsoleUI.Models.Task;
 
 namespace ConsoleUI.Services
 {
+    /// <summary>
+    /// Service implementation for the ITaskService
+    /// </summary>
     public class TaskService : ITaskService
     {
-        // services
-        private ILogger<Startup> _logger { get; }
-        private IAuthService _authService { get; }
-        private AssignaClient _client { get; }
+        // Services
+        private ILogger<Startup> _logger;
+        private IAuthService     _authService;
+        private AssignaClient    _client;
 
         // props
-        private HttpResponseMessage? response { get; set; }
+        private HttpResponseMessage? Response { get; set; }
 
-        public TaskService(ILogger<Startup> logger,
-            AssignaClient client, IAuthService authService)
+        public TaskService(ILogger<Startup> logger, AssignaClient client, IAuthService authService)
         {
-            _logger = logger;
-            _client = client;
+            _logger      = logger;
+            _client      = client;
             _authService = authService;
         }
 
-        // get team members
-        public async Task<Result<List<Users>>> TeamMembers()
+        /// <summary>
+        /// Retrieves a list of team members.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="User"/> representing the team members.
+        /// </returns>
+        public async Task<Result<List<User>>> TeamMembers()
         {
             try
             {
-                // adding headers
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
+                // api headers
+                _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
 
-                // calling api
-                using (response = await _client.Request.GetAsync("user/members"))
+                // calls the api
+                using (Response = await _client.Request.GetAsync("user/members"))
                 {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                    | response.StatusCode == HttpStatusCode.Forbidden)
+                    if (Response.StatusCode == HttpStatusCode.Unauthorized || Response.StatusCode == HttpStatusCode.Forbidden)
                     {
-                        // call refresh token
+                        // calls the refresh token
                         var refresh = new RefreshToken
                         {
                             TokenRefresh = Keys.RefreshToken
                         };
 
+                        // gets the refresh token
                         var token = await _authService.RefreshTokenAsync(refresh);
                         if (token.Success)
                         {
-                            Keys.AccessToken = token.Token;
+                            Keys.AccessToken  = token.Token;
                             Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("user/members");
+                        _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+                        Response = await _client.Request.GetAsync("user/members");
                     }
 
-                    // read response
-                    string result = await response.Content.ReadAsStringAsync();
+                    // reads the response
+                    string result = await Response.Content.ReadAsStringAsync();
 
                     // deserializing
-                    var member = JsonConvert.DeserializeObject<Result<List<Users>>>(result)!
-                        .Data.ToList();
+                    var member = JsonConvert.DeserializeObject<Result<List<User>>>(result)?.Data.ToList();
 
-                    return new Result<List<Users>>
+                    return new Result<List<User>>
                     {
                         Success = true,
-                        Message = "Ok",
-                        Data = member
+                        Message = "Ok.",
+                        Data    = member
                     };
                 }
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Users>>
+                return new Result<List<User>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // get categories
+        /// <summary>
+        /// Retrieves a list of all categories.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Categories"/> representing all categories.
+        /// </returns>
         public async Task<Result<List<Categories>>> AllCategories()
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
+                // api headers
+                _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
 
-                using (response = await _client.Request.GetAsync("category/categories"))
+                // calls the api
+                using (Response = await _client.Request.GetAsync("category/categories"))
                 {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                  | response.StatusCode == HttpStatusCode.Forbidden)
+                    if (Response.StatusCode == HttpStatusCode.Unauthorized || Response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
                             TokenRefresh = Keys.RefreshToken
                         };
 
+                        // gets the refresh token
                         var token = await _authService.RefreshTokenAsync(refresh);
                         if (token.Success)
                         {
-                            Keys.AccessToken = token.Token;
+                            Keys.AccessToken  = token.Token;
                             Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("category/categories");
+                        _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+                        Response = await _client.Request.GetAsync("category/categories");
                     }
 
+                    // reads the response
+                    string result = await Response.Content.ReadAsStringAsync();
 
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    var category = JsonConvert.DeserializeObject<Result<List<Categories>>>(result)!
-                        .Data.ToList();
+                    // deserializing
+                    var category = JsonConvert.DeserializeObject<Result<List<Categories>>>(result)?.Data.ToList();
 
                     return new Result<List<Categories>>
                     {
                         Success = true,
-                        Message = "Ok",
-                        Data = category
+                        Message = "Ok.",
+                        Data    = category
                     };
                 }
 
@@ -147,53 +153,57 @@ namespace ConsoleUI.Services
                 return new Result<List<Categories>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // get priorities
+        /// <summary>
+        /// Retrieves a list of all priority levels.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Priorities"/> representing all priority levels.
+        /// </returns>
         public async Task<Result<List<Priorities>>> Priorities()
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
+                // api headers
+                _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
 
-                using (response = await _client.Request.GetAsync("priority/priorities"))
+                // calls the api
+                using (Response = await _client.Request.GetAsync("priority/priorities"))
                 {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
+                    if (Response.StatusCode == HttpStatusCode.Unauthorized || Response.StatusCode == HttpStatusCode.Forbidden)
                     {
                         var refresh = new RefreshToken
                         {
                             TokenRefresh = Keys.RefreshToken
                         };
 
+                        // gets the refresj token
                         var token = await _authService.RefreshTokenAsync(refresh);
                         if (token.Success)
                         {
-                            Keys.AccessToken = token.Token;
+                            Keys.AccessToken  = token.Token;
                             Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("priority/priorities");
+                        _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+                        Response = await _client.Request.GetAsync("priority/priorities");
                     }
 
+                    // reads the response
+                    string result = await Response.Content.ReadAsStringAsync();
 
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    var priority = JsonConvert.DeserializeObject<Result<List<Priorities>>>(result)!
-                        .Data.ToList();
+                    // deserializing
+                    var priority = JsonConvert.DeserializeObject<Result<List<Priorities>>>(result)?.Data.ToList();
 
                     return new Result<List<Priorities>>
                     {
                         Success = true,
-                        Message = "Ok",
-                        Data = priority
+                        Message = "Ok.",
+                        Data    = priority
                     };
                 }
             }
@@ -203,372 +213,289 @@ namespace ConsoleUI.Services
                 return new Result<List<Priorities>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // all tasks
-        public async Task<Result<List<Tasks>>> AllTasks()
+        /// <summary>
+        /// Retrieves a list of all tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> AllTasks()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("tasks");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // pending taks
-        public async Task<Result<List<Tasks>>> Pendings()
+        /// <summary>
+        /// Retrieves a list of all pending tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all pending tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> Pendings()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("pendings");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // completed tasks
-        public async Task<Result<List<Tasks>>> Completed()
+        /// <summary>
+        /// Retrieves a list of all completed tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all completed tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> Completed()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("completes");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // high priority tasks
-        public async Task<Result<List<Tasks>>> HighPriority()
+        /// <summary>
+        /// Retrieves a list of all high priority tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all high priority tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> HighPriority()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("high-priority");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // medium priority tasks
-        public async Task<Result<List<Tasks>>> MediumPriority()
+        /// <summary>
+        /// Retrieves a list of all medium priority tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all medium priority tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> MediumPriority()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("medium-priority");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // low priority tasks
-        public async Task<Result<List<Tasks>>> LowPriority()
+        /// <summary>
+        /// Retrieves a list of all low priority tasks related data based on the user.
+        /// </summary>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing all low  priority tasks.
+        /// </returns>
+        public async Task<Result<List<Task>>> LowPriority()
         {
             try
             {
+                // gets the result
                 var data = await TasksDataRequest("low-priority");
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = true,
-                    Message = "Ok",
-                    Data = data.ToList()
+                    Message = "Ok.",
+                    Data    = Enumerable.ToList<Task>(data)
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // task category data
-        private async Task<List<Tasks>> TasksDataRequest(string action)
-        {
-            // change controller based on user
-            string controller = (Keys.Role == Roles.lead) ? "leadtasks" : "membertasks";
-
-            // adding headers
-            var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-            _client.Request.DefaultRequestHeaders.Authorization = header;
-
-            // calling api
-            using(response = await _client.Request.GetAsync($"{controller}/{action}"))
-            {
-                if (response.StatusCode == HttpStatusCode.Unauthorized
-                    | response.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    // call refresh token
-                    var refresh = new RefreshToken
-                    {
-                        TokenRefresh = Keys.RefreshToken
-                    };
-
-                    var token = await _authService.RefreshTokenAsync(refresh);
-                    if (token.Success)
-                    {
-                        Keys.AccessToken = token.Token;
-                        Keys.RefreshToken = token.RefreshToken;
-                    }
-
-                    header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                    _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                    response = await _client.Request.GetAsync($"{controller}/{action}");
-
-                }
-
-
-                string result = await response.Content.ReadAsStringAsync();
-
-                // deserializing
-                var data = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                    .Data.ToList();
-
-                return data;
-
-            }
-
-        }
-
-        // task infomation
-        public async Task<Result<List<Tasks>>> LeadTaskInfo(int taskId)
+        /// <summary>
+        /// Gets list of task based on the type. (e.g. complete, pending)
+        /// </summary>
+        /// <param name="action">The task type</param>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing the task data.
+        /// </returns>
+        private async Task<List<Task>> TasksDataRequest(string action)
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
+                // changes the controller based on the user
+                string controller = (Keys.Role == Roles.lead) ? "leadtasks" : "membertasks";
 
-                using (response = await _client.Request.GetAsync($"leadtasks/task-info?taskid={taskId}"))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                    | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync($"leadtasks/task-info?taskid={taskId}");
-                    }
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    var info = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                        .Data.ToList();
-
-                    return new Result<List<Tasks>>
-                    {
-                        Success = true,
-                        Message = "Ok",
-                        Data = info
-                    };
-                }
+                // returns the result
+                return (await MakeGetRequest($"{controller}/{action}"))?.Data ?? new List<Task>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
-                {
-                    Success = false,
-                    Message = "Internal error"
-                };
+                return new List<Task>();
             }
         }
 
-        public async Task<Result<List<Tasks>>> MemberTaskInfo(int taskId)
+        /// <summary>
+        /// Retrieves detailed information about a specific task of the team-lead user role.
+        /// </summary>
+        /// <param name="taskId">The identifier of the task for which to retrieve information.</param>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing the task information.
+        /// </returns>
+        public async Task<Result<List<Task>>> LeadTaskInfo(int taskId)
         {
             try
             {
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.GetAsync($"membertasks/task-info?taskid={taskId}"))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                    | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync($"membertasks/task-info?taskid={taskId}");
-                    }
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    var info = JsonConvert.DeserializeObject<Result<List<Tasks>>>(result)!
-                        .Data.ToList();
-
-                    return new Result<List<Tasks>>
-                    {
-                        Success = true,
-                        Message = "Ok",
-                        Data = info
-                    };
-                }
+                // returns the result
+                return await MakeGetRequest($"leadtasks/task-info?taskid={taskId}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return new Result<List<Tasks>>
+                return new Result<List<Task>>
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // add a new task
+        /// <summary>
+        /// Retrieves detailed information about a specific task of the team-member user role.
+        /// </summary>
+        /// <param name="taskId">The identifier of the task for which to retrieve information.</param>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing the task information.
+        /// </returns>
+        public async Task<Result<List<Task>>> MemberTaskInfo(int taskId)
+        {
+            try
+            {
+                // returns the result
+                return await MakeGetRequest($"membertasks/task-info?taskid={taskId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new Result<List<Task>>
+                {
+                    Success = false,
+                    Message = "Internal error."
+                };
+            }
+        }
+
+        /// <summary>
+        /// Saves a task.
+        /// </summary>
+        /// <param name="data">The data containing the task information to be saved.</param>
+        /// <returns>
+        /// A <see cref="Result"/> indicating the outcome of the save operation.
+        /// </returns>
         public async Task<Result> SaveTaskAsync(AddTask data)
         {
             try
             {
+                // new task data
                 var task = new AddTask
                 {
-                    TskTitle = data.TskTitle,
-                    TskCategory = data.TskCategory,
-                    Deadline = data.Deadline,
-                    Priority = data.Priority,
-                    Member = data.Member,
-                    TskNote = data.TskNote
+                    TaskTitle    = data.TaskTitle,
+                    TaskCategory = data.TaskCategory,
+                    Deadline     = data.Deadline,
+                    Priority     = data.Priority,
+                    Member       = data.Member,
+                    TaskNote     = data.TaskNote
                 };
 
-                // serializing
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-                // adding headers
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("leadtasks/add-task", content))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-                        // call refresh token
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("leadtasks/add-task");
-                    }
-
-                    // read response
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    // deserializing
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
-                    return resultt ?? new Result();
-                }
-
+                // returns the result
+                return await MakePostRequest(data: task, url: "leadtasks/add-task");
             }
             catch (Exception ex)
             {
@@ -576,67 +503,36 @@ namespace ConsoleUI.Services
                 return new Result
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // edit a task
+        /// <summary>
+        /// Edits an existing task.
+        /// </summary>
+        /// <param name="data">The data containing the updated task information.</param>
+        /// <returns>
+        /// A <see cref="Result"/> indicating the outcome of the edit operation.
+        /// </returns>
         public async Task<Result> EditTaskAsync(EditTask data)
         {
             try
             {
+                // edit task data
                 var task = new EditTask
                 {
-                    TskId = data.TskId,
-                    TskTitle = data.TskTitle,
-                    TskCategory = data.TskCategory,
-                    Deadline = data.Deadline,
-                    Priority = data.Priority,
-                    Member = data.Member,
-                    TskNote = data.TskNote
+                    TaskId       = data.TaskId,
+                    TaskTitle    = data.TaskTitle,
+                    TaskCategory = data.TaskCategory,
+                    Deadline     = data.Deadline,
+                    Priority     = data.Priority,
+                    Member       = data.Member,
+                    TaskNote     = data.TaskNote
                 };
 
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("leadtasks/edit-task", content))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("leadtasks/edit-task");
-                    }
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
-                    return resultt ?? new Result();
-                }
+                // returns the result
+                return await MakePostRequest(data: task, url: "leadtasks/edit-task");
 
             }
             catch (Exception ex)
@@ -645,62 +541,30 @@ namespace ConsoleUI.Services
                 return new Result
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // delete a task
+        /// <summary>
+        /// Deletes a task.
+        /// </summary>
+        /// <param name="data">The data containing the task identifier to be deleted.</param>
+        /// <returns>
+        /// A <see cref="Result"/> indicating the outcome of the delete operation.
+        /// </returns>
         public async Task<Result> DeleteTaskAsync(DeleteTask data)
         {
             try
             {
+                // delete task data
                 var task = new DeleteTask
                 {
-                    TskId = data.TskId
+                    TaskId = data.TaskId
                 };
 
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("leadtasks/delete-task", content))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("leadtasks/delete-task");
-                    }
-
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
-                    return resultt ?? new Result();
-                }
+                // returns the result
+                return await MakePostRequest(data: task, url: "leadtasks/delete-task");
 
             }
             catch (Exception ex)
@@ -714,57 +578,26 @@ namespace ConsoleUI.Services
             }
         }
 
-        // send remind
+        /// <summary>
+        /// Sends an email to the specified recipient.
+        /// </summary>
+        /// <param name="data">The data containing the email information.</param>
+        /// <returns>
+        /// A <see cref="Result"/> representing the result of the email sending operation.
+        /// </returns>
         public async Task<Result> SendRemind(SendEmail data)
         {
             try
             {
+                // email data
                 var task = new SendEmail
                 {
-                    TskId = data.TskId,
+                    TaskId = data.TaskId,
                     Message = data.Message
                 };
 
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("leadtasks/send-remind", content))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
-
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
-
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("leadtasks/send-remind");
-                    }
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
-                    return resultt ?? new Result();
-                }
+                // returns the result
+                return await MakePostRequest(data: task, url: "leadtasks/send-remind");
 
             }
             catch (Exception ex)
@@ -773,62 +606,62 @@ namespace ConsoleUI.Services
                 return new Result
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
                 };
             }
         }
 
-        // add task note
+        /// <summary>
+        /// Adds a note to a task.
+        /// </summary>
+        /// <param name="data">The data containing the task information and the note to be added.</param>
+        /// <returns>
+        /// A <see cref="Result"/> indicating the outcome of the add note operation.
+        /// </returns>
         public async Task<Result> AddTaskNoteAsync(AddNote data)
         {
             try
             {
+                // task note data
                 var task = new AddNote
                 {
-                    TskId = data.TskId,
+                    TaskId    = data.TaskId,
                     UserNote = data.UserNote
                 };
 
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("membertasks/write-note", content))
+                // returns the result
+                return await MakePostRequest(data: task, url: "membertasks/write-note");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new Result
                 {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
-                    {
+                    Success = false,
+                    Message = "Internal error."
+                };
+            }
+        }
 
-                        var refresh = new RefreshToken
-                        {
-                            TokenRefresh = Keys.RefreshToken
-                        };
+        /// <summary>
+        /// Marks a task as done.
+        /// </summary>
+        /// <param name="data">The data containing the task identifier to be marked as done.</param>
+        /// <returns>
+        /// A a <see cref="Result"/> indicating the outcome of the mark as done operation.
+        /// </returns>
+        public async Task<Result> MarkasDoneAsync(MarkDone data)
+        {
+            try
+            {
+                // task data
+                var task = new MarkDone
+                {
+                    TaskId = data.TaskId
+                };
 
-                        var token = await _authService.RefreshTokenAsync(refresh);
-                        if (token.Success)
-                        {
-                            Keys.AccessToken = token.Token;
-                            Keys.RefreshToken = token.RefreshToken;
-                        }
-
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("membertasks/write-note");
-                    }
-
-                    string result = await response.Content.ReadAsStringAsync();
-
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
-                    return resultt ?? new Result();
-                }
+                // returns the result
+                return await MakePostRequest(data: task, url: "membertasks/mark-done");
 
             }
             catch (Exception ex)
@@ -842,38 +675,37 @@ namespace ConsoleUI.Services
             }
         }
 
-        // mark as done
-        public async Task<Result> MarkasDoneAsync(MarkDone data)
+        // Helpers ------------------------------------------------
+
+        /// <summary>
+        /// Makes post request to the endpoint.
+        /// </summary>
+        /// <param name="data">The data to be sent.</param>
+        /// <param name="url">The endpoint url.</param>
+        /// <returns>
+        /// A <see cref="Result"/> indicating the outcome of the operation.
+        /// </returns>
+        private async Task<Result> MakePostRequest<T>(T data, string url)
         {
             try
             {
-                var task = new AddNote
+                // serializing
+                var content = new StringContent(JsonConvert.SerializeObject(data), Encoding.UTF8, "application/json");
+
+                // adds headers
+                _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+
+                // calls the api
+                using (Response = await _client.Request.PostAsync(url, content))
                 {
-                    TskId = data.TskId
-                };
-
-                var content = new StringContent
-                    (
-                        JsonConvert.SerializeObject(task),
-                        encoding: Encoding.UTF8,
-                        mediaType: "application/json"
-                    );
-
-
-                var header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                using (response = await _client.Request.PostAsync("membertasks/mark-done", content))
-                {
-                    if (response.StatusCode == HttpStatusCode.Unauthorized
-                        | response.StatusCode == HttpStatusCode.Forbidden)
+                    if (Response.StatusCode == HttpStatusCode.Unauthorized || Response.StatusCode == HttpStatusCode.Forbidden)
                     {
-
                         var refresh = new RefreshToken
                         {
                             TokenRefresh = Keys.RefreshToken
                         };
 
+                        // gets the refresh token
                         var token = await _authService.RefreshTokenAsync(refresh);
                         if (token.Success)
                         {
@@ -881,18 +713,20 @@ namespace ConsoleUI.Services
                             Keys.RefreshToken = token.RefreshToken;
                         }
 
-                        header = new AuthenticationHeaderValue("Bearer", Keys.AccessToken);
-                        _client.Request.DefaultRequestHeaders.Authorization = header;
-
-                        response = await _client.Request.GetAsync("membertasks/mark-done");
+                        _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+                        Response = await _client.Request.GetAsync("membertasks/write-note");
                     }
 
-                    string result = await response.Content.ReadAsStringAsync();
+                    // reads the response
+                    string result = await Response.Content.ReadAsStringAsync();
 
-                    Result? resultt = JsonConvert.DeserializeObject<Result>(result);
+                    // deserializing
+                    var resultt = JsonConvert.DeserializeObject<Result>(result);
+
+                    // returns the result
                     return resultt ?? new Result();
-                }
 
+                }
             }
             catch (Exception ex)
             {
@@ -900,7 +734,69 @@ namespace ConsoleUI.Services
                 return new Result
                 {
                     Success = false,
-                    Message = "Internal error"
+                    Message = "Internal error."
+                };
+            }
+        }
+
+        /// <summary>
+        /// Makes get request to the endpoint.
+        /// </summary>
+        /// <param name="url">The endpoint url.</param>
+        /// <returns>
+        /// A list of <see cref="Task"/> containing the task data.
+        /// </returns>
+        private async Task<Result<List<Task>>> MakeGetRequest(string url)
+        {
+            try
+            {
+                // adds headers
+                _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+
+                // calls the api
+                using (Response = await _client.Request.GetAsync(url))
+                {
+                    if (Response.StatusCode == HttpStatusCode.Unauthorized || Response.StatusCode == HttpStatusCode.Forbidden)
+                    {
+                        var refresh = new RefreshToken
+                        {
+                            TokenRefresh = Keys.RefreshToken
+                        };
+
+                        // gets the refresh token
+                        var token = await _authService.RefreshTokenAsync(refresh);
+                        if (token.Success)
+                        {
+                            Keys.AccessToken  = token.Token;
+                            Keys.RefreshToken = token.RefreshToken;
+                        }
+
+                        _client.Request.DefaultRequestHeaders.Authorization = new("Bearer", Keys.AccessToken);
+                        Response = await _client.Request.GetAsync(url);
+                    }
+
+                    // reads the response
+                    string result = await Response.Content.ReadAsStringAsync();
+
+                    // deserializing
+                    var info = JsonConvert.DeserializeObject<Result<List<Task>>>(result)!.Data.ToList();
+
+                    // returns the result
+                    return new Result<List<Task>>
+                    {
+                        Success = true,
+                        Message = "Ok.",
+                        Data    = info
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                return new Result<List<Task>>
+                {
+                    Success = false,
+                    Message = "Internal error."
                 };
             }
         }

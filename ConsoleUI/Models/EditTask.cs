@@ -1,14 +1,43 @@
 ﻿namespace ConsoleUI.Models
 {
+    /// <summary>
+    /// Model for edit a task
+    /// </summary>
     public class EditTask
     {
-        // edit a task
-        public int TskId { get; set; }
-        public string? TskTitle { get; set; }
-        public int TskCategory { get; set; }
-        public string? Deadline { get; set; }
-        public string? Priority { get; set; }
-        public int Member { get; set; }
-        public string? TskNote { get; set; }
+        /// <summary>
+        /// Task ID
+        /// </summary>
+        public int TaskId       { get; set; }
+
+        /// <summary>
+        /// Task title
+        /// </summary>
+        public string TaskTitle { get; set; }
+
+        /// <summary>
+        /// Task category
+        /// </summary>
+        public int TaskCategory { get; set; }
+
+        /// <summary>
+        /// Task deadline
+        /// </summary>
+        public string Deadline  { get; set; }
+
+        /// <summary>
+        /// Task priority
+        /// </summary>
+        public string Priority  { get; set; }
+
+        /// <summary>
+        /// Task assignee
+        /// </summary>
+        public int Member       { get; set; }
+
+        /// <summary>
+        /// Task note
+        /// </summary>
+        public string TaskNote  { get; set; }
     }
 }
